@@ -6,6 +6,7 @@ import selectors
 from dotenv import load_dotenv
 import socket
 from cogs.image import Image
+import os
 
 
 class Bot(commands.Bot):
@@ -13,7 +14,7 @@ class Bot(commands.Bot):
         super().__init__(
             command_prefix=["m."],
             intents=discord.Intents.all(),
-            activity=discord.Game("with your Mom"),
+            activity=discord.Game("with your mom"),
         )
 
     async def on_command_error(self, ctx, error):
@@ -28,7 +29,6 @@ class Bot(commands.Bot):
                 color=discord.Colour.black(),
             )
             await ctx.send(embed=em)
-            print("cooldown")
         else:
             print(error)
 
@@ -40,7 +40,9 @@ class Bot(commands.Bot):
 
 bot = Bot()
 
-TOKEN = load_dotenv("TOKEN")
+load_dotenv()
+
+TOKEN = os.environ.get("TOKEN")
 
 
 class MyPolicy(asyncio.DefaultEventLoopPolicy):
