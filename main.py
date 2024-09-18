@@ -3,11 +3,9 @@ import discord
 import asyncio
 import aiohttp
 import selectors
+from dotenv import load_dotenv
 import socket
-from cogs.music import Music
-
-
-# from cogs.music import music
+from cogs.image import Image
 
 
 class Bot(commands.Bot):
@@ -35,14 +33,14 @@ class Bot(commands.Bot):
             print(error)
 
     async def setup_hook(self):
-        await self.add_cog(Music(self))
+        await self.add_cog(Image(bot))
         await self.tree.sync()
         print(f"Synced slash commands for {self.user}.")
 
 
 bot = Bot()
 
-TOKEN = "OTY2MzQyODkxMjA1MTY1MTg3.GeDBwP.YTVL25ZLzQ9HMWAzI1NnJqo7lfVQXqgtgyyJd4"
+TOKEN = load_dotenv("TOKEN")
 
 
 class MyPolicy(asyncio.DefaultEventLoopPolicy):
@@ -53,9 +51,9 @@ class MyPolicy(asyncio.DefaultEventLoopPolicy):
 
 async def main() -> None:
     async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(
-            resolver=aiohttp.AsyncResolver(), family=socket.AF_INET
-        )
+            connector=aiohttp.TCPConnector(
+                resolver=aiohttp.AsyncResolver(), family=socket.AF_INET
+            )
     ) as http_session:
         async with bot:
             bot.http_session = http_session
