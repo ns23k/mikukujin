@@ -5,17 +5,23 @@ import aiohttp
 import selectors
 from dotenv import load_dotenv
 import socket
-from cogs.image import Image
 import os
+
+from cogs.image import Image
+from cogs.help import Help
+from cogs.akinator import Aki
+from cogs.useless import Useless
+from cogs.aninteractions import AnInteraction
 
 
 class Bot(commands.Bot):
-    def __init__(self):
+    def __init__(self, husbando_token):
         super().__init__(
             command_prefix=["m."],
             intents=discord.Intents.all(),
             activity=discord.Game("with your mom"),
         )
+        self.husbando_token = husbando_token
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
@@ -33,14 +39,19 @@ class Bot(commands.Bot):
             print(error)
 
     async def setup_hook(self):
-        await self.add_cog(Image(bot))
+        await self.add_cog(Image(bot, self.husbando_token))
+        await self.add_cog(Help(bot))
+        await self.add_cog(Aki(bot))
+        await self.add_cog(Useless(bot, self.husbando_token))
+        await self.add_cog(AnInteraction(bot, self.husbando_token))
         await self.tree.sync()
         print(f"Synced slash commands for {self.user}.")
 
 
-bot = Bot()
-
 load_dotenv()
+HUSBANDO_TOKEN = os.environ.get("HUSBANDO")
+
+bot = Bot(HUSBANDO_TOKEN)
 
 TOKEN = os.environ.get("TOKEN")
 

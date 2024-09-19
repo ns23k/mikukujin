@@ -3,6 +3,7 @@ from discord.ext.commands import hybrid_command
 import datetime
 from discord.ext import commands
 import aiohttp
+import requests
 
 
 def create_embed(ctx, title, name, url):
@@ -20,8 +21,20 @@ def create_embed(ctx, title, name, url):
     return embed
 
 
+def get_husbando(token: str) -> str:
+    url = "https://waifu.it/api/v4/husbando"
+    response = requests.get(url, headers={
+        "Authorization": token,
+    })
+    data = response.json()
+    return data
+
+
 class Image(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    """Image Stuff"""
+
+    def __init__(self, bot: commands.Bot, TOKEN):
+        self.TOKEN = TOKEN
         self.bot = bot
 
     @hybrid_command()
@@ -52,7 +65,7 @@ class Image(commands.Cog):
             async with cs.get("https://randomfox.ca/floof/") as r:
                 data = await r.json()
                 embed_floof = create_embed(ctx, title="Fox!", name="*Floof~*", url=data.get("image"))
-            await ctx.send(content="", embed=embed_floof)
+            await msg.edit(content="", embed=embed_floof)
 
     @commands.hybrid_command()
     async def duck(self, ctx):
@@ -62,7 +75,7 @@ class Image(commands.Cog):
             async with cs.get("https://random-d.uk/api/v2/random") as r:
                 data = await r.json()
                 ducky_embed = create_embed(ctx, title="Duck!", name="*Quack~*", url=data.get("url"))
-            await ctx.send(content="", embed=ducky_embed)
+            await msg.edit(content="", embed=ducky_embed)
 
     @commands.hybrid_command()
     async def waifu(self, ctx):
@@ -71,6 +84,13 @@ class Image(commands.Cog):
         async with aiohttp.ClientSession() as cs:
             async with cs.get("https://api.waifu.im/search") as r:
                 data = await r.json()
-
             waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=data.get("images")[0].get("url"))
-            await ctx.send(content="", embed=waif_embed)
+            await msg.edit(content="", embed=waif_embed)
+
+    @commands.hybrid_command()
+    async def husbando(self, ctx):
+        """Pretty self-explanatory too I guess"""
+        msg = await ctx.send("....")
+        data = get_husbando(self.TOKEN)
+        waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=data.get("image").get("large"))
+        await msg.edit(content="", embed=waif_embed)
