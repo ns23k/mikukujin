@@ -41,7 +41,7 @@ class AnInteraction(commands.Cog):
     async def base_message(self, ctx, endpoint, title, user):
         url = self.api.api_request(endpoint)
         if user is None:
-            await ctx.reply(f"Mention a user bitch or i'll be {title} you")
+            await ctx.reply(f"user bhi mention kr le pyare")
         else:
             await ctx.send(embed=self.create_embed(ctx, title=title, url=url, name=user))
 
@@ -285,5 +285,7 @@ class AnInteraction(commands.Cog):
     async def yes(self, ctx, user: Optional[discord.User] = None):
         await self.base_message(ctx, "yes", "saying yes to", user)
 
-
+    @commands.hybrid_command()
+    async def smash(self, ctx):
+        await ctx.send("https://media.tenor.com/73J4EYNNvMcAAAAM/f-u-middle-finger.gif")
 

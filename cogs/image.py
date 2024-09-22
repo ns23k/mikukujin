@@ -78,6 +78,7 @@ class Image(commands.Cog):
             await msg.edit(content="", embed=ducky_embed)
 
     @commands.hybrid_command()
+    @commands.cooldown(1, 10)
     async def waifu(self, ctx):
         """Pretty self-explanatory I guess"""
         msg = await ctx.send("....")
@@ -86,6 +87,8 @@ class Image(commands.Cog):
                 data = await r.json()
             waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=data.get("images")[0].get("url"))
             await msg.edit(content="", embed=waif_embed)
+            await msg.add_reaction("⬆️")
+            await msg.add_reaction("⬇️")
 
     @commands.hybrid_command()
     async def husbando(self, ctx):
@@ -94,3 +97,5 @@ class Image(commands.Cog):
         data = get_husbando(self.TOKEN)
         waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=data.get("image").get("large"))
         await msg.edit(content="", embed=waif_embed)
+        await msg.add_reaction("⬆️")
+        await msg.add_reaction("⬇️")

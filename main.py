@@ -32,7 +32,8 @@ class Bot(commands.Bot):
         if isinstance(error, commands.CommandOnCooldown):
             em = discord.Embed(
                 title=f"Slow it down bro!",
-                description=f"Try again in {error.retry_after:.2f}s.",
+                description=f"2D girls ke pictures dekhne se tujhe girlfriend nhi milegi <:huh:>\nGo outside and Try "
+                            f"again in {error.retry_after:.2f}s.",
                 color=discord.Colour.black(),
             )
             await ctx.send(embed=em)
