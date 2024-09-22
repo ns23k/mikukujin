@@ -12,6 +12,7 @@ from cogs.help import Help
 from cogs.akinator import Aki
 from cogs.useless import Useless
 from cogs.aninteractions import AnInteraction
+from cogs.quespaper import QuesPaper
 
 
 class Bot(commands.Bot):
@@ -44,6 +45,7 @@ class Bot(commands.Bot):
         await self.add_cog(Aki(bot))
         await self.add_cog(Useless(bot, self.husbando_token))
         await self.add_cog(AnInteraction(bot, self.husbando_token))
+        await self.add_cog(QuesPaper(bot))
         await self.tree.sync()
         print(f"Synced slash commands for {self.user}.")
 
