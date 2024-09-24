@@ -45,7 +45,7 @@ def prepare_attachments(attachments):
     message_attachments = []
     for i in attachments:
         file = convert_to_buffer(i.url)
-        if is_landscape(file):
+        if is_landscape(file) and ".pdf" not in i.url:
             file = rotate_img(file)
             message_attachments.append(discord.File(file, filename=f"{attachments.index(i)}.png"))
         else:

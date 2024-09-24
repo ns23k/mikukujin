@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord.ext.commands.errors import CommandOnCooldown
 import discord
 import asyncio
 import aiohttp
@@ -8,7 +9,7 @@ import socket
 import os
 
 from cogs.image import Image
-from cogs.help import Help
+from cogs.help import HelpCog
 from cogs.akinator import Aki
 from cogs.useless import Useless
 from cogs.aninteractions import AnInteraction
@@ -21,28 +22,25 @@ class Bot(commands.Bot):
             command_prefix=["m."],
             intents=discord.Intents.all(),
             activity=discord.Game("with your mom"),
+            help_command=None
         )
         self.husbando_token = husbando_token
 
     async def on_command_error(self, ctx, error):
+        print(type(error))
         if isinstance(error, commands.CommandNotFound):
             await ctx.reply(
                 "aisa koyi command nhi hai bewakoof <:cheems:998927712758534195>"
             )
-        if isinstance(error, commands.CommandOnCooldown):
-            em = discord.Embed(
-                title=f"Slow it down bro!",
-                description=f"2D girls ke pictures dekhne se tujhe girlfriend nhi milegi <:huh:>\nGo outside and Try "
-                            f"again in {error.retry_after:.2f}s.",
-                color=discord.Colour.black(),
-            )
-            await ctx.send(embed=em)
-        else:
-            print(error)
+
+        if isinstance(error, CommandOnCooldown):
+            await ctx.reply(f"2D girls ke pictures dekhne se tujhe girlfriend nhi milegi <:huh:1285989840432791604>,  "
+                            f"Go outside and Try "
+                            f"again in {error.retry_after:.2f}s.")
 
     async def setup_hook(self):
         await self.add_cog(Image(bot, self.husbando_token))
-        await self.add_cog(Help(bot))
+        await self.add_cog(HelpCog(bot))
         await self.add_cog(Aki(bot))
         await self.add_cog(Useless(bot, self.husbando_token))
         await self.add_cog(AnInteraction(bot, self.husbando_token))

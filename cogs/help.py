@@ -1,106 +1,70 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands import hybrid_command
-from typing import *
-from discord.errors import Forbidden
+import asyncio
 
 
-async def send_embed(ctx, embed):
-    try:
-        await ctx.send(embed=embed)
-    except Forbidden:
-        try:
-            await ctx.send("Hey, seems like I can't send embeds. Please check my permissions :)")
-        except Forbidden:
-            await ctx.author.send(
-                f"Hey, seems like I can't send any message in {ctx.channel.name} on {ctx.guild.name}\n"
-                f"May you inform the server team about this issue? :slight_smile: ", embed=embed)
-
-
-class Help(commands.Cog):
-    """
-    Sends this help message
-    """
-
+class HelpCog(commands.Cog, name="Help"):
     def __init__(self, bot):
         self.bot = bot
-        self.prefix = "m."
-        self.version = "69"
 
-        self.owner = "._nahhmaan"
-        self.owner_name = "Naman Sharma"
-        self.bot.remove_command("help")
+    # Custom help command with pagination
+    @commands.command(help="Shows this help message with pagination if there are more than 25 commands.")
+    async def help(self, ctx):
+        # Collect all commands from all cogs
+        all_commands = []
+        for cog_name in self.bot.cogs:
+            cog = self.bot.get_cog(cog_name)
+            commands_list = cog.get_commands()
+            if commands_list:
+                all_commands.extend([(command.name, command.help, cog_name) for command in commands_list])
 
-    @commands.command()
-    async def help(self, ctx, *input: Optional[str]):
-        """Shows all modules of that bot"""
-        # checks if cog parameter was given
-        # if not: sending all modules and commands not associated with a cog
-        if not input:
-            # checks if owner is on this server - used to 'tag' owner
+        # Sort and paginate commands (25 per page)
+        per_page = 25
+        pages = [all_commands[i:i + per_page] for i in range(0, len(all_commands), per_page)]
+        total_pages = len(pages)
 
-            # starting to build embed
-            emb = discord.Embed(title='Commands and modules', color=discord.Color.blue(),
-                                description=f'Use `{self.prefix}help <module>` to gain more information about that '
-                                            f'module'
-                                            f':smiley:\n')
+        if total_pages == 0:
+            embed = discord.Embed(title="Error", description="No commands found.", color=discord.Color.red())
+            return await ctx.send(embed=embed)
 
-            cogs_desc = ''
-            for cog in self.bot.cogs:
-                cogs_desc += f'`{cog}` {self.bot.cogs[cog].__doc__}\n'
+        current_page = 0
 
-            # adding 'list' of cogs to embed
-            emb.add_field(name='Modules', value=cogs_desc, inline=False)
+        # Function to create an embed for a specific page
+        def create_embed(page):
+            embed = discord.Embed(title="Help", description=f"Page {page + 1}/{total_pages}",
+                                  color=discord.Color.blue())
+            for command_name, command_help, cog_name in pages[page]:
+                embed.add_field(name=f"`{command_name}` ({cog_name})", value=command_help or "No description",
+                                inline=False)
+            return embed
 
-            # integrating trough uncategorized commands
-            commands_desc = ''
-            for command in self.bot.walk_commands():
-                # if cog not in a cog
-                # listing command if cog name is None and command isn't hidden
-                if not command.cog_name and not command.hidden:
-                    commands_desc += f'{command.name} - {command.help}\n'
+        # Send the initial help message
+        message = await ctx.send(embed=create_embed(current_page))
 
-            # adding those commands to embed
-            if commands_desc:
-                emb.add_field(name='Not belonging to a module', value=commands_desc, inline=False)
+        # Only add pagination if there are more than 1 page
+        if total_pages > 1:
+            # Add reaction emojis for navigation
+            await message.add_reaction("⬅️")
+            await message.add_reaction("➡️")
 
-            # setting information about author
-            emb.set_footer(text=f"Bot is running version {self.version}")
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) in ["⬅️", "➡️"] and reaction.message.id == message.id
 
-        # block called when one cog-name is given
-        # trying to find matching cog and it's commands
-        elif len(input) == 1:
+            while True:
+                try:
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
 
-            # iterating trough cogs
-            for cog in self.bot.cogs:
-                # check if cog is the matching one
-                if cog.lower() == input[0].lower():
+                    if str(reaction.emoji) == "⬅️" and current_page > 0:
+                        current_page -= 1
+                        await message.edit(embed=create_embed(current_page))
+                    elif str(reaction.emoji) == "➡️" and current_page < total_pages - 1:
+                        current_page += 1
+                        await message.edit(embed=create_embed(current_page))
 
-                    # making title - getting description from doc-string below class
-                    emb = discord.Embed(title=f'{cog} - Commands', description=self.bot.cogs[cog].__doc__,
-                                        color=discord.Color.green())
+                    # Remove the user's reaction after processing
+                    await message.remove_reaction(reaction.emoji, user)
 
-                    # getting commands from cog
-                    for command in self.bot.get_cog(cog).get_commands():
-                        # if cog is not hidden
-                        if not command.hidden:
-                            emb.add_field(name=f"`{self.prefix}{command.name}`", value=command.help, inline=False)
-                    # found cog - breaking loop
+                except asyncio.TimeoutError:
+                    # Timeout, remove reactions and stop listening for them
+                    await message.clear_reactions()
                     break
-
-
-            else:
-                emb = discord.Embed(title="What's that?!",
-                                    description=f"I've never heard from a module called `{input[0]}` before :scream:",
-                                    color=discord.Color.orange())
-
-        # too many cogs requested - only one at a time allowed
-        elif len(input) > 1:
-            emb = discord.Embed(title="That's too much.",
-                                description="Please request only one module at once :sweat_smile:",
-                                color=discord.Color.orange())
-
-        else:
-            emb = discord.Embed(title="uh oh")
-
-        await send_embed(ctx, emb)
