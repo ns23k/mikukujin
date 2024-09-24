@@ -83,23 +83,14 @@ class Image(commands.Cog):
     async def waifu(self, ctx):
         """Pretty self-explanatory I guess"""
         msg = await ctx.send("....")
-        rand = random.randint(0, 1)
-        if rand == 0:
-            async with aiohttp.ClientSession() as cs:
-                async with cs.get("https://api.waifu.im/search") as r:
-                    data = await r.json()
+        async with aiohttp.ClientSession() as cs:
+            async with cs.get("https://api.waifu.im/search") as r:
+                data = await r.json()
                 waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=data.get("images")[0].get("url"))
-        else:
-            endpoint = "https://waifu.it/api/v4/waifu"
-            response = requests.get(endpoint, headers={
-                "Authorization": self.TOKEN,
-            })
-            url = response.json().get("image").get("large")
-            waif_embed = create_embed(ctx, title="Kawaiii!", name="url", url=url)
 
-        await msg.edit(content="", embed=waif_embed)
-        await msg.add_reaction("⬆️")
-        await msg.add_reaction("⬇️")
+                await msg.edit(content="", embed=waif_embed)
+                await msg.add_reaction("⬆️")
+                await msg.add_reaction("⬇️")
 
     @commands.hybrid_command()
     async def husbando(self, ctx):
